@@ -60,20 +60,19 @@ of giving up the CPU.
 However, Informatica does not know of any way to completely eliminate
 all interruptions.
 
-Note that the servers Smash and Hal did not have any of these tweaks or
-optimizations done to it.
-So the test results documented herein were extremely susceptible to
-interruptions.
+Without doing these optimizations,
+the test results are extremely susceptible to interruptions.
 
 The "smx_perf_pub.c" program contains a test function named "jitter_loop()"
 which simply calls "clock_gettime()" twice in and subtracts the two times.
 It does this in a tight loop and keeps track of the minimum and maximum
 time differences.
 The minimum time difference essentially documents the execution time of
-"clock_gettime()", and is 12 ns on Smash and on Hal.
+"clock_gettime()", and is 12 ns on our test hardware.
 But much more interesting are the maximum times.
 It is common to see time differences in the hundreds of microseconds
-(e.g. 384 for Smash). These outliers are caused by interruptions.
+(e.g. 384 for one of our test runs).
+These outliers are caused by interruptions.
 
 ## Memory Contention and Cache Invalidation
 
@@ -98,7 +97,7 @@ If we assume that the receiver code is faster than the sender code,
 the receiver will quickly process the message and go back to tightly
 reading the head index.
 Thus, the publisher will encounter this contention on every single message sent,
-resulting in a baseline throughput (14M for Smash).
+resulting in a baseline throughput.
 
 Now let's modify the situation.
 Let's add a little bit of work in the subscriber's receiver callback.
