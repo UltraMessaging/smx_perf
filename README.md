@@ -1,5 +1,4 @@
-# smx_perf - test programs to measure the performance of
-Ultra Messaging's SMX transport.
+# smx_perf - test programs to measure the performance of Ultra Messaging's SMX transport.
 
 ## Copyright and License
 
