@@ -57,6 +57,8 @@ For example, see:
 There are many other kernel tweaks and optimizations that can be made
 to prevent interruptions and allow the application to minimize instances
 of giving up the CPU.
+Informatica recommends that users work with an experienced Linux performance
+engineer to understand the tradeoffs of potential optimizations.
 However, Informatica does not know of any way to completely eliminate
 all interruptions.
 
