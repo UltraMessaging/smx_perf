@@ -32,7 +32,8 @@ See https://github.com/UltraMessaging/smx_perf for code and documentation.
 The SMX transport code is written to provide very constant execution time.
 Dynamic memory (malloc/free) is not used during message transfer.
 User data is not copied between buffers.
-There is no significant source for measurement variance in the SMX code itself.
+There is no significant source for measurement outliers
+(jitter) in the SMX code itself.
 
 However, the measurements made at Informatica show significant outliers.
 These outliers are caused by two environmental factors:
@@ -41,14 +42,16 @@ These outliers are caused by two environmental factors:
 
 ### Interruptions
 
-There are many sources of interruptions on a CPU core running a typical OS (Linux or Windows).
+There are many sources of execution interruptions on a CPU core running
+a typical OS (Linux or Windows).
 Some of them are actual hardware interrupts, like page faults,
 disk controllers, NICs, and timers.
-Others are soft, like virtual memory maintenance (e.g. page faults),
+Others are soft, like virtual memory maintenance,
 scheduler-related operations, and potentially even system
 or user processes "stealing" time from the main application.
-It is possible to reduce or eliminate many of these sources of interrupt
-by modifying the host's configuration, both in its BIOS and the kernel.
+It is possible to eliminate or at least reduce many of these sources of
+interrupt by modifying the host's configuration,
+both in its BIOS and the kernel.
 For example, see:
 * https://lwn.net/Articles/549580/
 * https://lwn.net/Articles/659490/
@@ -76,7 +79,7 @@ It is common to see time differences in the hundreds of microseconds
 (e.g. 384 for one of our test runs).
 These outliers are caused by interruptions.
 
-## Memory Contention and Cache Invalidation
+### Memory Contention and Cache Invalidation
 
 There are two places where memory contention plays a significant role
 in varying the measured performance of SMX:
@@ -204,3 +207,49 @@ with three improvements:
 * Adds significant error checking and reporting.
 * Treats numbers with the "0x" prefix as hexadecimal.
 
+### DIFF_TS
+
+This is a helper macro that subtracts two "struct timespec" values, as
+returned by "clock_gettime()", and puts the difference into a uint64_t variable
+as the number of nanoseconds between the two timespecs.
+
+### send_loop()
+
+The "send_loop()" function in "smx_perf_pub.c" does the work of
+sending messages at a desired rate.
+It is designed to "busy loop" between sends so that the time spacing between
+messages is as constant and uniform as possible.
+Which is to say, the message traffic is not subject to bursts.
+
+This is not intended to model the behavior of a real-life trading system,
+where message traffic is highly subject to intense bursts.
+Generating bursty traffic is very important when testing trading system
+designs,
+but is not desired when measuring maximum sustainable throughput and
+latency under load.
+
+Maximum sustainable throughput is the message rate at which the subscriber
+can just barely keep up.
+Sending a burst of traffic at higher than that rate can be accommodated
+temporarily by buffering the excess messages until the burst is over.
+After the burst, the send rate needs to drop below the maximum sustainable
+message rate so that the subscriber can empty the buffer and get caught up.
+But none of this is useful in measuring the maximum sustainable throughput.
+Instead, evenly-spaced messages should be sent to get an accurate measurement
+of the maximum sustainable throughput.
+This gives you a baseline for calculating the size of the buffer required to
+handle bursts of a maximum intensity and duration.
+
+Similarly, sending bursts of traffic that exceed the maximum
+sustainable throughput is not desired for measuring the latency under load
+of the underlying messaging system.
+Again, a burst can be accommodated temporarily by buffering the excess messages,
+but this simply adds buffering latency,
+which is not the latency that we are trying to measure.
+
+When running at or near the maximum sustainable throughput,
+some amount of buffering latency is inevitable due to the subscriber being
+susceptible to [execution interruptions](#interruptions).
+This contributes to latency variation, since messages subsequent to a
+subscriber interruption can experience buffering latency if the subscriber
+hasn't yet gotten caught up.
