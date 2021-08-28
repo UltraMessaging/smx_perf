@@ -133,8 +133,9 @@ extern "C" {
 } while (0)
 
 
-#define FLAGS_TIMESTAMP 0x01
+#define FLAGS_TIMESTAMP    0x01
 #define FLAGS_NON_BLOCKING 0x02
+#define FLAGS_GENERIC_SRC  0x04
 
 struct perf_msg_s {
   uint64_t flags;

@@ -1,6 +1,6 @@
 # smx_perf - test programs to measure the performance of Ultra Messaging's SMX transport.
 
-## Copyright and License
+## COPYRIGHT AND LICENSE
 
 All of the documentation and software included in this and any
 other Informatica Ultra Messaging GitHub repository
@@ -26,6 +26,77 @@ THE LIKELIHOOD OF SUCH DAMAGES.
 ## REPOSITORY
 
 See https://github.com/UltraMessaging/smx_perf for code and documentation.
+
+## USAGE NOTES
+
+### smx_perf_pub
+
+````
+Usage: smx_perf_pub [-h] [-a affinity_cpu] [-c config] [-f flags] [-j jitter_loops] [-l linger_ms] [-m msg_len] [-n num_msgs] [-r rate] [-t topic] [-w warmup_loops]
+where:
+  -h : print help
+  -a affinity_cpu : bitmap for CPU affinity for send thread [%d]
+  -c config : configuration file; can be repeated [%s]
+  -f flags : bitmap [0x%x]: 0x01: FLAGS_TIMESTAMP (to measure latency)
+                           0x02: FLAGS_NON_BLOCKING
+                           0x04: FLAGS_GENERIC_SRC
+  -j jitter_loops : jitter measurement loops [%d]
+  -l linger_ms : linger time before source delete [%d]
+  -m msg_len : message length [%d]
+  -n num_msgs : number of messages to send [%d]
+  -r rate : messages per second to send [%d]
+  -t topic : topic string [\"%s\"]
+  -w warmup_loops : messages to send before measurement loop [%d]
+````
+
+#### Jitter Measurement
+
+The "-j jitter_loops" command-line option changes smx_perf_sub's function.
+It does not send any messages.
+
+Instead, it produces a rough measure of system-induced outliers (jitter).
+It does this by simply taking two high-resolution timestamps in a row
+using [clock_gettime()](https://linux.die.net/man/3/clock_gettime),
+and calculating the difference in nanoseconds.
+This measurement is repeated a very large number of times,
+keeping track of the minimum and maximum times.
+
+The "minimum" time represents the execution time of a single call to
+clock_gettime() (12-13 nanoseconds on our test machines).
+The "maximum" time represents the longest time that Linux interrupted the
+execution of the loop.
+See [Measurement Outliers](measurement-outliers) for information about
+execution interruptions.
+
+We commonly measure interruptions above 100 microseconds,
+sometimes above 300 microseconds.
+
+#### Linger Time
+
+The "-l linger_ms" command-line option introduces a delay between the
+last message sent and deletion of the UM source.
+Informatica generally recommends a delay before deleting the source to
+allow any receivers to get caught up.
+Once the source is deleted, a receiver that is behind might experience
+a type of unrecoverable loss called
+"[tail loss](https://ultramessaging.github.io/currdoc/doc/Design/fundamentalconcepts.html#tailloss)".
+
+In the case of SMX,
+if the publisher deletes the source object before the subscriber is
+able to read all messages from it, the subscriber can experience
+tail loss.
+
+### smx_perf_sub
+
+````
+Usage: smx_perf_sub [-h] [-a affinity_cpu] [-c config] [-f] [-s spin_cnt] [-t topic]
+where:
+  -a affinity_cpu : CPU number (0..N-1) for SMX receive thread [%d]
+  -c config : configuration file; can be repeated [%s]
+  -f : fast - minimal processing in message receive (no latency calcs)
+  -s spin_cnt : empty loop inside receiver callback [%d]
+  -t topic : topic string [%s]
+````
 
 ## MEASUREMENT OUTLIERS
 
@@ -68,16 +139,8 @@ all interruptions.
 Without doing these optimizations,
 the test results are extremely susceptible to interruptions.
 
-The "smx_perf_pub.c" program contains a test function named "jitter_loop()"
-which simply calls "clock_gettime()" twice in and subtracts the two times.
-It does this in a tight loop and keeps track of the minimum and maximum
-time differences.
-The minimum time difference essentially documents the execution time of
-"clock_gettime()", and is 12 ns on our test hardware.
-But much more interesting are the maximum times.
-It is common to see time differences in the hundreds of microseconds
-(e.g. 384 for one of our test runs).
-These outliers are caused by interruptions.
+See [Jitter Measurement](#jitter-measurement) for a method to measure
+these interruptions.
 
 ### Memory Contention and Cache Invalidation
 
@@ -130,7 +193,7 @@ So for this report, the "fully-contended" throughput is the one we emphasize.
 If in practice the sender and receiver sometimes synchronize in a way that
 improves throughput, that's a nice benefit, but not a guarantee.
 
-## Code Notes
+## CODE NOTES
 
 This section explains various potentially non-obvious implementation details
 of the smx_perf_pub.c and smx_perf_sub.c programs.

@@ -31,7 +31,7 @@
 #include "lbm/lbm.h"
 #include "smx_perf.h"
 
-/* Options and their defaults */
+/* Command-line options and their defaults */
 static int o_affinity_cpu = 0;
 static char *o_config = NULL;
 static int o_fast = 0;
