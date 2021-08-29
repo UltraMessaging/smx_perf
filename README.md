@@ -62,14 +62,14 @@ The results were mostly independent of messages size.
 The results were mostly independent of message rate.
 
 Cross-NUMA access is MUCH slower.
-Keep senders and receivers in same NUMA node if possible.
+Keep senders and receivers in the same NUMA node if possible.
 * Max sustainable message rate about a third: ~6M msgs/sec.
 * Latencies about double: 170-360 ns.
 
 Slow receivers slow down the source to match the receiver speed.
 * When SMX buffer fills,
-next buffer acquire busy loops until the receiver consumes.
-* If multiple receivers, *all* must consume before sender can resume.
+the next buffer acquisition will busy-loop until the receiver consumes.
+* If multiple receivers, *all* must consume before the sender can resume.
 All receivers get all messages.
 
 Multiple receivers slow SMX down
@@ -96,7 +96,7 @@ export LD_LIBRARY_PATH=$LBM/lib
 8 gigabytes or more memory.
 2. C compiler (gcc) and related tools.
 3. Ultra Messaging version 6.14, including development files (lbm.h,
-libraries, etc).
+libraries, etc.).
 
 See [Test Hardware](#informatica-test-hardware) for details of Informatica's
 test host.
@@ -104,7 +104,7 @@ test host.
 ### Choose CPUs
 
 Different hardware systems assign CPU numbers to NUMA nodes differently.
-Some do even/odd assignments, others do first-half, second-half.
+Some do even/odd assignments; others do first-half/second-half.
 
 Enter the Linux command "lscpu". Here is an excerpt of its output:
 ````
@@ -225,14 +225,14 @@ actual_sends=100000000, duration_ns=5713119332, result_rate=17503572.775014,
 This run took 5.7 seconds to send 100M 64-byte message for a resulting message
 rate of 17.5M msgs/sec.
 
-Wait 5 seconds after the publisher completes and Window 2 will display:
+Wait 5 seconds after the publisher completes, and Window 2 will display:
 ````
 rcv event EOS, 'smx_perf', LBT-SMX:ff311d1b:12001[1015551347], num_rcv_msgs=100010000, 
 ````
 Note that the total messages are equal to the requested messages (o_num_msgs)
 plus the warmup messages (o_warmup_loops).
 
-Also note that the "top" command running in Window 1 shows CPU 5 running at
+Also, note that the "top" command running in Window 1 shows CPU 5 running at
 100%, even though the publisher is not running.
 The SMX receiver thread does not block or sleep.
 
@@ -256,16 +256,16 @@ of message sizes:
 1500 | 14,720,429
 
 Note the discontinuities at message sizes 65, 113, and 129.
-There are other discontinuities that can be found,
+There are other discontinuities,
 although they may depend on the hardware used.
-We believe these discontinuities are a result of alignment to
-cache lines which affects when and how data is moved from main memory
+We believe these discontinuities result from alignment to
+cache lines, affecting when and how data moves from main memory
 to the CPU cache.
 
 The higher numbers may not be reliable, especially as application complexity
 is added, which will affect the CPU cache. 
 This is why we claim throughput of 14M msgs/sec - this seems to be a
-reliable performance measure that does not rely on serendipity.
+reliable performance measure that does not rely on luck.
 
 #### Receiver Workload
 
@@ -274,7 +274,7 @@ extra work to the subscriber's receiver callback function.
 This can be used to illustrate another counter-intuitive effect related
 to ["memory contention"](#memory-contention-and-cache-invalidation).
 
-In window 2, restart the subscriber, replacing the "-f" option  with "-s 3".
+In window 2, restart the subscriber, replacing the "-f" option with "-s 3".
 For example:
 ````
 ./smx_perf_sub -a 5 -c smx.cfg -s 4
@@ -297,7 +297,7 @@ actual_sends=100000000, duration_ns=1251633649, result_rate=79895582.928675,
 
 The previous measurement where the receiver used "-f" gave a result rate
 of 17.5M msgs/sec.
-But by adding 4 busy loops inside the subscriber's receiver callback,
+But by adding four busy-loops inside the subscriber's receiver callback,
 the result rate jumps to 79.9M msgs/sec - a 400% speed increase.
 We believe this to be due to 
 ["memory contention"](#memory-contention-and-cache-invalidation);
@@ -309,8 +309,8 @@ resulting in greatly increased throughput.
 
 The higher numbers may not be reliable, especially as application complexity
 is added, which will affect the CPU cache and timing in unpredictable ways. 
-This is why we claim throughput of 14M msgs/sec - this seems to be a
-reliable performance measure that does not rely on serendipity.
+This is why we claim a throughput of 14M msgs/sec - this seems to be a
+reliable performance measure that does not rely on luck.
 
 ## TOOL USAGE NOTES
 
@@ -342,8 +342,8 @@ The "-a" command-line option is used to specify the CPU core number
 to use for the time-critical thread.
 
 For the publisher (smx_perf_pub.c),
-the time critical thread is the "main" thread,
-since that is the thread which sends the messages.
+the time-critical thread is the "main" thread,
+since that is the thread that sends the messages.
 The publisher program is typically started with affinity set to a
 non-critical CPU core, typically 1, using the "taskset" command.
 The publisher creates its context, which creates the context thread,
@@ -407,12 +407,12 @@ tail loss.
 
 #### Warmup
 
-When measuring performance, it is generally recommended to perform a number
+When measuring performance, we recommended performing a number
 of "warmup" loops of the time-critical code.
 This is to get code and data pages loaded into physical memory, and to
 the CPU caches loaded.
 
-The execution of those initial warmup loops are not included in the
+The execution of those initial warmup loops is not included in the
 performance measurements.
 
 ### smx_perf_sub
@@ -447,7 +447,7 @@ for (global_counter = 0; global_counter < o_spin_cnt; global_counter++) {
 }
 ````
 This loop is used to add a small amount of per-message "work" to the subscriber.
-Note tha the "global_counter" variable is made global so that the compiler
+Note that the "global_counter" variable is made global so the compiler
 won't optimize the loop away.
 
 This is used to explore the effects of
@@ -456,14 +456,14 @@ on performance.
 
 ## MEASUREMENT OUTLIERS
 
-The SMX transport code is written to provide very constant execution time.
+The SMX transport code is written to provide a very constant execution time.
 Dynamic memory (malloc/free) is not used during message transfer.
 User data is not copied between buffers.
 There is no significant source for measurement outliers
 (jitter) in the SMX code itself.
 
 However, the measurements made at Informatica show significant outliers.
-These outliers are caused by two environmental factors:
+Two environmental factors cause these outliers:
 * Interruptions.
 * Memory contention and cache invalidation.
 
@@ -489,11 +489,11 @@ to prevent interruptions and allow the application to minimize instances
 of giving up the CPU.
 Informatica recommends that users work with an experienced Linux performance
 engineer to understand the tradeoffs of potential optimizations.
-However, Informatica does not know of any way to completely eliminate
+However, Informatica does not know of any way to eliminate
 all interruptions.
 
 Without doing these optimizations,
-the test results are extremely susceptible to interruptions.
+the test results are highly susceptible to interruptions.
 
 See [Jitter Measurement](#jitter-measurement) for a method to measure
 these interruptions.
@@ -503,7 +503,7 @@ these interruptions.
 There are two places where memory contention plays a significant role
 in varying the measured performance of SMX:
 when the shared memory is empty of messages and the receiver is waiting for one,
-and when the shared memory is full and the publisher is waiting for
+and when the shared memory is full, and the publisher is waiting for
 an opening to be made.
 In both cases, one CPU is continuously reading a word of shared memory,
 waiting for the other CPU to write something into it.
@@ -511,11 +511,11 @@ When the "writer" CPU is ready to write the value that the "reader" CPU
 is waiting for, the hardware must serialize the accesses and maintain
 cache coherency, which introduces wait states for both CPUs.
 
-Take the case where the memory segment is empty and the subscriber is
+Take the case where the memory segment is empty, and the subscriber is
 waiting for the publisher to send a message.
 The SMX receiver code is tightly polling the "head index",
 waiting for the publisher to move it. The memory contention associated with
-the "send" function significantly slows down the process of updating the
+the "send" function significantly slows down updating the
 head index.
 If we assume that the receiver code is faster than the sender code,
 the receiver will quickly process the message and go back to tightly
@@ -528,25 +528,25 @@ Let's add a little bit of work in the subscriber's receiver callback.
 In the "smx_perf_sub" program, this is simply an empty "for" loop that
 spins a requested number of times (see the
 ["-s spin_cnt"](#spin-count) command-line option).
-If the receiver spins only 3 times for each received message,
+If the receiver spins only three times for each received message,
 this allows the sender to update the shared memory before the receiver
 has finished.
 This greatly increases the speed of that send operation,
-and it also increases the speed of the subsequent read operation.
-Informatica has seen throughput increase by a factor of more than 4 by
+and also increases the speed of the subsequent read operation.
+Informatica has seen throughput increase by over 400% by
 simply adding that little bit of work to the receiver.
 The memory accesses just miss each other instead of colliding.
 
 This effect can be demonstrated in [Receiver Workload](#receiver-workload).
-Note that the effect is more-pronounced with smaller messages sizes.
+Note that the effect is more pronounced with smaller messages sizes.
 
 In a real-world environment where traffic bursts intensely,
 followed by periods of idleness, it frequently happens that the first
 message of a burst will have the contention,
 but many of the subsequent messages in the burst can avoid the contention.
-However, this is typically not something that can be counted on.
+However, this is typically not something that you can count on.
 So for this report, the "fully-contended" throughput is the one we emphasize.
-If in practice the sender and receiver sometimes synchronize in a way that
+If, in practice, the sender and receiver sometimes synchronize in a way that
 improves throughput, that's a nice benefit, but not a guarantee.
 
 ## CODE NOTES
@@ -613,12 +613,12 @@ DIFF_TS(duration_ns, end_ts, start_ts);
 ### send_loop()
 
 The "send_loop()" function in "smx_perf_pub.c" does the work of
-sending messages at a desired rate.
-It is designed to "busy loop" between sends so that the time spacing between
+sending messages at the desired rate.
+It is designed to "busy-loop" between sends so that the time spacing between
 messages is as constant and uniform as possible.
-Which is to say, the message traffic is not subject to bursts.
+The message traffic is not subject to bursts.
 
-This is not intended to model the behavior of a real-life trading system,
+This approach is not intended to model the behavior of a real-life trading system,
 where message traffic is highly subject to intense bursts.
 Generating bursty traffic is very important when testing trading system
 designs,
@@ -627,7 +627,7 @@ latency under load.
 
 Maximum sustainable throughput is the message rate at which the subscriber
 can just barely keep up.
-Sending a burst of traffic at higher than that rate can be accommodated
+Sending a burst of traffic at a higher rate can be accommodated
 temporarily by buffering the excess messages until the burst is over.
 After the burst, the send rate needs to drop below the maximum sustainable
 message rate so that the subscriber can empty the buffer and get caught up.
@@ -647,7 +647,7 @@ which is not the latency that we are trying to measure.
 When running at or near the maximum sustainable throughput,
 some amount of buffering latency is inevitable due to the subscriber being
 susceptible to [execution interruptions](#interruptions).
-This contributes to latency variation, since messages subsequent to a
+This contributes to latency variation since messages after a
 subscriber interruption can experience buffering latency if the subscriber
 hasn't yet gotten caught up.
 
