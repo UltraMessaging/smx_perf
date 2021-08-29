@@ -39,7 +39,7 @@ static int o_spin_cnt = 0;
 static char *o_topic = NULL;  /* Default set in "get_my_opts()". */
 
 
-char usage_str[] = "Usage: smx_perf_sub [-h] [-a affinity_cpu] [-c config] [-f] [-s spin_cnt] [-t topic] [-v]]";
+char usage_str[] = "Usage: smx_perf_sub [-h] [-a affinity_cpu] [-c config] [-f] [-s spin_cnt] [-t topic]";
 
 void usage(char *msg) {
   if (msg) fprintf(stderr, "%s\n", msg);
@@ -92,8 +92,8 @@ void get_my_opts(int argc, char **argv)
 /* This is global because both "rcv_callback()" and "fast_rcv_callback()" need to
  * access it. */
 static uint64_t num_rcv_msgs;
-/* This "spinner" variable is made global to force the optimizer to update it. */
-int global_spinner;
+/* This "counter" variable is made global to force the optimizer to update it. */
+int global_counter;
 int rcv_callback(lbm_rcv_t *rcv, lbm_msg_t *msg, void *clientd)
 {
   static uint64_t min_latency;
@@ -151,8 +151,10 @@ int rcv_callback(lbm_rcv_t *rcv, lbm_msg_t *msg, void *clientd)
       num_timestamps++;
     }
     num_rcv_msgs++;
-    /* This "spinner" loop is to introduce short delays into the receiver. */
-    for (global_spinner = 0; global_spinner < o_spin_cnt; global_spinner++) {
+    /* This "counter" loop is to introduce short delays into the receiver. */
+    if (o_spin_cnt > 0) {
+      for (global_counter = 0; global_counter < o_spin_cnt; global_counter++) {
+      }
     }
     break;
   }
