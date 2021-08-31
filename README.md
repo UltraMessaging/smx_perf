@@ -15,6 +15,8 @@
       - [Receiver Workload](#receiver-workload)
       - [Slow Receiver](#slow-receiver)
     + [Measure Latency](#measure-latency)
+      - [Other Message Sizes and Rates](#other-message-sizes-and-rates)
+    + [Other Interesting Measurements](#other-interesting-measurements)
   * [TOOL USAGE NOTES](#tool-usage-notes)
     + [smx_perf_pub](#smx-perf-pub)
     + [Affinity](#affinity)
@@ -115,6 +117,9 @@ Multiple receivers slow SMX down a little
 * As above, mostly independent of message size.
 * Latencies only slightly elevated.
 * As above, mostly independent of message size and message rate.
+
+See [infa_measurements.csv](infa_measurements.csv) for the full dataset
+of measurements taken by Informatica.
 
 ## REPRODUCE RESULTS
 
@@ -488,6 +493,47 @@ It's the outliers that pull the average up to 156.
 The maximum outlier is 206 microseconds, less than the maximum
 interruption [measured earlier](#measure-system-interruptions).
 See [Measurement Outliers](#measurement-outliers).
+
+#### Other Message Sizes and Rates
+
+Here are the latencies in nanoseconds measured at Informatica for a variety
+of message sizes and message rates.
+
+-m msg_len | Message Rate | Min Latency | Avg Latency
+---------- | ------------ | ----------- | -----------
+100        | 250K         | 128         | 156
+100        | 1M           | 95          | 155
+100        | 5M           | 85          | 152
+100        | 10M          | 67          | 143
+500        | 250K         | 94          | 158
+500        | 1M           | 84          | 154
+500        | 5M           | 70          | 152
+500        | 10M          | 70          | 147
+1500       | 250K         | 107         | 157
+1500       | 1M           | 95          | 157
+1500       | 5M           | 70          | 152
+1500       | 10M          | 70          | 163
+
+See [Measurement Outliers](#measurement-outliers).
+
+### Other Interesting Measurements
+
+Any of the above measurements can be repeated with cross-NUMA memory
+access by modifying the "-a affinity" number so that the
+publisher and subscriber are on different NUMA nodes.
+You will see a performance decrease.
+
+Any of the above measurements can be repeated with the generic source
+API (instead of the optimized SMX API) by adding 4 to the publisher's
+"-f flag" option.
+You will see a performance decrease.
+
+Any of the above measurements can be repeated with multiple instances
+of the subscriber running.
+Be sure to run each subscriber on its own CPU, all on the
+same NUMA node.
+You will see performance decrease slightly as the number of receivers
+increases.
 
 ## TOOL USAGE NOTES
 
