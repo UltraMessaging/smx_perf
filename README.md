@@ -128,7 +128,7 @@ LBM=$HOME/UMP_6.14/Linux-glibc-2.17-x86_64  # Modify according to your needs.
 export LD_LIBRARY_PATH=$LBM/lib
 ````
 
-Further more, it is assumed that the "PATH" environment variable includes
+Furthermore, it is assumed that the "PATH" environment variable includes
 the path to the directory containing the "smx_perf_pub" and "smx_perf_sub"
 executables.
 
@@ -246,11 +246,11 @@ We recommend conducting a configuration workshop with Informatica.
 ### Measure System Interruptions
 
 As explained in [Measurement Outliers](#measurement-outliers),
-there are many sources of appliation execution interruption that are
+there are many sources of application execution interruption that are
 beyond the control of UM.
 These interruptions result in latency outliers.
 
-To get an idea of the magnatude of outliers on your system,
+To get an idea of the magnitude of outliers on your system,
 run the jitter test.
 
 Open two "terminal" windows to your test host.
@@ -260,7 +260,7 @@ When "top" is running, press the "1" key.
 This displays per-CPU statistics.
 It may be helpful to expand this window vertically to maximize the number
 of lines displayed.
-While a test is running, CPU 5 is receiving and CPU 7 is sending.
+While a test is running, CPU 5 is receiving, and CPU 7 is sending.
 Typically, both will be at 100% user mode CPU utilization.
 
 ***Window 2***: run "taskset -a 1 smx_perf_pub -a 7 -c smx.cfg -f 0x0 -r 100000 -n 1000000 -l 2000 -j 1000000000".
@@ -288,7 +288,7 @@ When "top" is running, press the "1" key.
 This displays per-CPU statistics.
 It may be helpful to expand this window vertically to maximize the number
 of lines displayed.
-While a test is running, CPU 5 is receiving and CPU 7 is sending.
+While a test is running, CPU 5 is receiving, and CPU 7 is sending.
 Typically, both will be at 100% user mode CPU utilization.
 
 ***Window 2***: run "taskset -a 1 smx_perf_sub -c smx.cfg -a 5 -f".
@@ -328,7 +328,7 @@ rcv event EOS, 'smx_perf', LBT-SMX:aa44d3c:12001[3393948135], num_rcv_msgs=10001
 Note that the total messages are equal to the requested messages (o_num_msgs)
 plus the warmup messages (o_warmup_loops).
 
-Also note that the EOS message migth be printed twice.
+Also, note that the EOS message might be printed twice.
 This is a known issue and does not negatively affect execution.
 
 Also, note that the "top" command running in Window 1 shows CPU 5 running at
@@ -400,7 +400,7 @@ actual_sends=100000000, duration_ns=1250518159, result_rate=79966851.564928,
 
 The previous measurement where the receiver used "-f" gave a result rate
 of 17.5M msgs/sec.
-But by adding four busy-loops inside the subscriber's receiver callback,
+But by adding four busy loops inside the subscriber's receiver callback,
 the result rate jumps to 79.9M msgs/sec - a 400% speed increase.
 We believe this to be due to 
 ["memory contention"](#memory-contention-and-cache-invalidation);
@@ -485,7 +485,7 @@ rcv event EOS, 'smx_perf', LBT-SMX:7001139a:12001[1912960237], num_rcv_msgs=2510
 
 Most of the latencies will be close to 128.
 It's the outliers that pull the average up to 156.
-The maximum outlier is 206 microseconds, which is less than the maximum
+The maximum outlier is 206 microseconds, less than the maximum
 interruption [measured earlier](#measure-system-interruptions).
 See [Measurement Outliers](#measurement-outliers).
 
@@ -580,7 +580,7 @@ The subscriber will detect the timestamp and will perform a per-message
 latency calculation.
 * 2 (FLAGS_NON_BLOCKING) -
 The publisher does non-blocking sends.
-This MUST not be used when measuring maximum sustainable message rate.
+This MUST not be used when measuring the maximum sustainable message rate.
 * 4 (FLAGS_GENERIC_SRC) -
 The publisher uses generic source send APIs instead
 of the optimized SMX-specific APIs.
