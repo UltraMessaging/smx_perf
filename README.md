@@ -112,7 +112,7 @@ the next buffer acquisition will busy-loop until the receiver consumes.
 * If multiple receivers, *all* must consume before the sender can resume.
 All receivers get all messages.
 
-Multiple receivers slow SMX down a little
+Multiple receivers slow SMX down a little.
 * Maximum sustainable message rate with two or three receivers: 11M msgs/sec.
 * As above, mostly independent of message size.
 * Latencies only slightly elevated.
@@ -135,13 +135,14 @@ export LD_LIBRARY_PATH=$LBM/lib
 
 Furthermore, it is assumed that the "PATH" environment variable includes
 the path to the directory containing the "smx_perf_pub" and "smx_perf_sub"
-executables.
+executables that you build.
 
 Finally, the "taskset" command is used to run the test programs,
 setting affinity to a non-time-critical CPU in the same NUMA node as
 the time-critical CPUs.
 The test programs use the "-a" command-line option to change the affinity
 of the time-critical threads to the time-critical CPUs.
+See [Affinity](#affinity).
 
 ### Requirements
 
@@ -157,7 +158,8 @@ test host.
 ### Choose CPUs
 
 Different hardware systems assign CPU numbers to NUMA nodes differently.
-Some do even/odd assignments; others do first-half/second-half.
+Our servers do even/odd assignments, but there are
+[other numbering schemes](https://itectec.com/unixlinux/understanding-output-of-lscpu/).
 
 Enter the Linux command "lscpu". For example:
 ````
@@ -177,9 +179,9 @@ NUMA node1 CPU(s):   1,3,5,7,9,11
 ...
 ````
 
-Choose two CPU numbers on the same NUMA node as your time-critical
+Choose two CPU numbers on the same NUMA node for your time-critical
 CPUs.
-Choose another CPU in the same NUMA node as a non-time-critical CPU.
+Choose another CPU in the same NUMA node for your non-time-critical CPU.
 
 For our testing, we chose CPUs 5 and 7 for time-critical,
 and CPU 1 for the non-time-critical.
@@ -196,6 +198,7 @@ A new pair of tools were written:
 
 The source code for these tools can be found in the GitHub repository
 "smx_perf" at: https://github.com/UltraMessaging/smx_perf
+
 The files can be obtained by cloning the repository using "git" or
 [GitHub Desktop](https://desktop.github.com), or by browsing to
 https://github.com/UltraMessaging/smx_perf and clicking the green "Code"
@@ -213,11 +216,12 @@ LBM=$HOME/UMP_6.14/Linux-glibc-2.17-x86_64  # Modify according to your needs.
 The assignment to the shell variable "LBM" should be changed to the location
 of your UM installation.
 
-After building, update the "PATH" environment variable to include the
+After running the "bld.sh" script,
+update the "PATH" environment variable to include the
 directory containing these executables.
 For example:
 ````
-export PATH="`pwd`:$PATH"
+export PATH="$HOME/smx_perf:$PATH"
 ````
 
 ### Update Configuration File
@@ -242,10 +246,11 @@ Change that to the group provided by your network admins.
 WARNING:
 The "smx.cfg" configuration is a minimal setup for this test,
 and is not suitable for production.
+It does not contain proper tunings for many other options.
 It uses multicast topic resolution for ease of setting up the test,
 even though we typically recommend the use of
 [TCP-based topic resolution](https://ultramessaging.github.io/currdoc/doc/Design/topicresolutiondescription.html#tcptr).
-It also does not contain proper tunings for many other options.
+
 We recommend conducting a configuration workshop with Informatica.
 
 ### Measure System Interruptions
@@ -297,8 +302,8 @@ While a test is running, CPU 5 is receiving, and CPU 7 is sending.
 Typically, both will be at 100% user mode CPU utilization.
 
 ***Window 2***: run "taskset -a 1 smx_perf_sub -c smx.cfg -a 5 -f".
-Substitute the "5" with the CPU number you previously chose for the message
-publisher.
+Substitute the "-a 1" and the "-a 5" with the non-time-critical and
+time-critical CPUs you previously chose.
 For example:
 ````
 taskset -a 1 smx_perf_sub -c smx.cfg -a 5 -f
@@ -310,8 +315,8 @@ o_affinity_cpu=5, o_config=smx.cfg, o_fast=1, o_spin_cnt=0, o_topic='smx_perf',
 ````
 
 ***Window 3***: run "taskset -a 1 smx_perf_pub -a 7 -c smx.cfg -l 2000 -f 0x0 -m 25 -r 999999999 -n 100000000".
-Substitute the "7" with the CPU number you previously chose for the message
-publisher.
+Substitute the "-a 1" and the "-a 7" with the non-time-critical and
+time-critical CPUs you previously chose.
 For example:
 ````
 $ taskset -a 1 smx_perf_pub -a 7 -c smx.cfg -l 2000 -f 0x0 -m 25 -r 999999999 -n 100000000
@@ -341,7 +346,7 @@ Also, note that the "top" command running in Window 1 shows CPU 5 running at
 The subscriber does not create the SMX thread until it initially discovers
 the SMX source.
 Once the SMX thread is created,
-it will continue running until the context is deleted.
+it will continue running at 100% until the context is deleted.
 
 #### Other Message Sizes
 
@@ -377,12 +382,12 @@ reliable performance measure that does not rely on luck.
 
 #### Receiver Workload
 
-The ["-s spin_cnt"](#spin-count) option can be used to add a little bit of
+The ["-s spin_cnt"](#spin-count) option can be used to add
 extra work to the subscriber's receiver callback function.
 This can be used to illustrate another counter-intuitive effect related
 to ["memory contention"](#memory-contention-and-cache-invalidation).
 
-In window 2, restart the subscriber, replacing the "-f" option with "-s 3".
+In window 2, restart the subscriber, replacing the "-f" option with "-s 4".
 For example:
 ````
 taskset -a 1 smx_perf_sub -c smx.cfg -a 5 -s 4
@@ -460,8 +465,8 @@ It may be helpful to expand this window vertically to maximize the number
 of lines displayed.
 
 ***Window 2***: run "taskset -a 1 smx_perf_sub -c smx.cfg -a 5".
-Substitute the "5" with the CPU number you previously chose for the message
-publisher.
+Substitute the "-a 1" and the "-a 5" with the non-time-critical and
+time-critical CPUs you previously chose.
 For example:
 ````
 taskset -a 1 smx_perf_sub -c smx.cfg -a 5
@@ -471,8 +476,8 @@ o_affinity_cpu=5, o_config=smx.cfg, o_fast=0, o_spin_cnt=0, o_topic='smx_perf',
 ````
 
 ***Window 3***: run "taskset -a 1 smx_perf_pub -a 7 -c smx.cfg -l 2000 -f 0x3 -m 100 -r 250000 -n 2500000".
-Substitute the "7" with the CPU number you previously chose for the message
-publisher.
+Substitute the "-a 1" and the "-a 7" with the non-time-critical and
+time-critical CPUs you previously chose.
 For example:
 ````
 $ taskset -a 1 /home/sford/GitHub/smx_perf/smx_perf_pub -a 7 -c smx.cfg -l 2000 -f 0x3 -m 100 -r 250000 -n 2500000
