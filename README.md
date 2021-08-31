@@ -72,7 +72,7 @@ Informatica used the tools in this repository to measure the
 performance of the SMX transport.
 
 In the results below, "K" represents 1,000; "M" represents 1,000,000;
-"G" represents 1,000,000,000.
+"G" represents 1,000,000,000 (i.e. they are not powers of 2).
 
 The SMX transport's maximum sustainable message rate (throughput) speed is
 very dependent on the speed of the CPU and the bandwidth to and from memory.
