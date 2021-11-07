@@ -144,6 +144,11 @@ The test programs use the "-a" command-line option to change the affinity
 of the time-critical threads to the time-critical CPUs.
 See [Affinity](#affinity).
 
+ATTENTION: the "taskset" command's "-a" option expects a bitmap of CPUs, 
+with 0x01 representing CPU number 0, 0x02 representing CPU 1, 
+0x04 representing CPU 2, etc.
+The um_perf tools' "-a" options expect the actual CPU number.
+
 ### Requirements
 
 1. Linux-based server (X86, 84-bit, 4 cores or more, hyperthreading turned off,
@@ -273,12 +278,12 @@ of lines displayed.
 While a test is running, CPU 5 is receiving, and CPU 7 is sending.
 Typically, both will be at 100% user mode CPU utilization.
 
-***Window 2***: run "taskset -a 1 smx_perf_pub -a 7 -c smx.cfg -f 0x0 -r 100000 -n 1000000 -l 2000 -j 1000000000".
+***Window 2***: run "taskset -a 0x01 smx_perf_pub -a 7 -c smx.cfg -f 0x0 -r 100000 -n 1000000 -l 2000 -j 1000000000".
 Substitute the "-a 1" and the "-a 7" with the non-time-critical and
 time-critical CPUs you previously chose.
 For example:
 ````
-taskset -a 1 smx_perf_pub -a 7 -c smx.cfg -f 0x0 -r 100000 -n 1000000 -l 2000 -j 1000000000
+taskset -a 0x01 smx_perf_pub -a 7 -c smx.cfg -f 0x0 -r 100000 -n 1000000 -l 2000 -j 1000000000
 Core-7911-1: Onload extensions API has been dynamically loaded
 o_affinity_cpu=7, o_config=smx.cfg, o_flags=0x00, o_jitter_loops=1000000000, o_linger_ms=2000, o_msg_len=25, o_num_msgs=1000000, o_rate=100000, o_topic='smx_perf', o_warmup_loops=10000,
 ts_min_ns=12, ts_max_ns=365127,
@@ -301,12 +306,12 @@ of lines displayed.
 While a test is running, CPU 5 is receiving, and CPU 7 is sending.
 Typically, both will be at 100% user mode CPU utilization.
 
-***Window 2***: run "taskset -a 1 smx_perf_sub -c smx.cfg -a 5 -f".
+***Window 2***: run "taskset -a 0x01 smx_perf_sub -c smx.cfg -a 5 -f".
 Substitute the "-a 1" and the "-a 5" with the non-time-critical and
 time-critical CPUs you previously chose.
 For example:
 ````
-taskset -a 1 smx_perf_sub -c smx.cfg -a 5 -f
+taskset -a 0x01 smx_perf_sub -c smx.cfg -a 5 -f
 Core-7911-1: Onload extensions API has been dynamically loaded
 Core-9401-4: WARNING: default_interface for a context should be set to a valid network interface.
 Core-5688-1833: WARNING: Host has multiple multicast-capable interfaces; going to use [enp5s0f1np1][10.29.4.52].
@@ -314,12 +319,12 @@ Core-10403-150: Context (0x1f47a10) created with ContextID (2599490123) and Cont
 o_affinity_cpu=5, o_config=smx.cfg, o_fast=1, o_spin_cnt=0, o_topic='smx_perf',
 ````
 
-***Window 3***: run "taskset -a 1 smx_perf_pub -a 7 -c smx.cfg -l 2000 -f 0x0 -m 25 -r 999999999 -n 100000000".
+***Window 3***: run "taskset -a 0x01 smx_perf_pub -a 7 -c smx.cfg -l 2000 -f 0x0 -m 25 -r 999999999 -n 100000000".
 Substitute the "-a 1" and the "-a 7" with the non-time-critical and
 time-critical CPUs you previously chose.
 For example:
 ````
-$ taskset -a 1 smx_perf_pub -a 7 -c smx.cfg -l 2000 -f 0x0 -m 25 -r 999999999 -n 100000000
+$ taskset -a 0x01 smx_perf_pub -a 7 -c smx.cfg -l 2000 -f 0x0 -m 25 -r 999999999 -n 100000000
 Core-7911-1: Onload extensions API has been dynamically loaded
 Core-9401-4: WARNING: default_interface for a context should be set to a valid network interface.
 Core-5688-1833: WARNING: Host has multiple multicast-capable interfaces; going to use [enp5s0f1np1][10.29.4.52].
@@ -390,7 +395,7 @@ to ["memory contention"](#memory-contention-and-cache-invalidation).
 In window 2, restart the subscriber, replacing the "-f" option with "-s 4".
 For example:
 ````
-taskset -a 1 smx_perf_sub -c smx.cfg -a 5 -s 4
+taskset -a 0x01 smx_perf_sub -c smx.cfg -a 5 -s 4
 Core-7911-1: Onload extensions API has been dynamically loaded
 ...
 o_affinity_cpu=5, o_config=smx.cfg, o_fast=0, o_spin_cnt=4, o_topic='smx_perf',
@@ -400,7 +405,7 @@ o_affinity_cpu=5, o_config=smx.cfg, o_fast=0, o_spin_cnt=4, o_topic='smx_perf',
 Then in window 3, re-run the publisher with 64-byte messages.
 For example:
 ````
-taskset -a 1 smx_perf_pub -a 7 -c smx.cfg -l 2000 -f 0x0 -m 64 -r 999999999 -n 100000000
+taskset -a 0x01 smx_perf_pub -a 7 -c smx.cfg -l 2000 -f 0x0 -m 64 -r 999999999 -n 100000000
 Core-7911-1: Onload extensions API has been dynamically loaded
 ...
 o_affinity_cpu=7, o_config=smx.cfg, o_flags=0x00, o_jitter_loops=0, o_linger_ms=2000, o_msg_len=64, o_num_msgs=100000000, o_rate=999999999, o_topic='smx_perf', o_warmup_loops=10000,
@@ -434,7 +439,7 @@ You can slow down the receiver by replacing the "-f" option with
 In window 2, restart the subscriber, replacing the "-f" option with "-s 10000".
 For example:
 ````
-taskset -a 1 smx_perf_sub -c smx.cfg -a 5 -s 10000
+taskset -a 0x01 smx_perf_sub -c smx.cfg -a 5 -s 10000
 Core-7911-1: Onload extensions API has been dynamically loaded
 ...
 o_affinity_cpu=5, o_config=smx.cfg, o_fast=0, o_spin_cnt=10000, o_topic='smx_perf',
@@ -444,7 +449,7 @@ o_affinity_cpu=5, o_config=smx.cfg, o_fast=0, o_spin_cnt=10000, o_topic='smx_per
 Then in window 3, re-run the publisher with 200K 128-byte messages.
 For example:
 ````
-taskset -a 1 smx_perf_pub -a 7 -c smx.cfg -l 2000 -f 0x0 -m 128 -r 999999999 -n 200000
+taskset -a 0x01 smx_perf_pub -a 7 -c smx.cfg -l 2000 -f 0x0 -m 128 -r 999999999 -n 200000
 Core-7911-1: Onload extensions API has been dynamically loaded
 ...
 o_affinity_cpu=7, o_config=smx.cfg, o_flags=0x00, o_jitter_loops=0, o_linger_ms=2000, o_msg_len=128, o_num_msgs=200000, o_rate=999999999, o_topic='smx_perf', o_warmup_loops=10000,
@@ -464,23 +469,23 @@ This displays per-CPU statistics.
 It may be helpful to expand this window vertically to maximize the number
 of lines displayed.
 
-***Window 2***: run "taskset -a 1 smx_perf_sub -c smx.cfg -a 5".
+***Window 2***: run "taskset -a 0x01 smx_perf_sub -c smx.cfg -a 5".
 Substitute the "-a 1" and the "-a 5" with the non-time-critical and
 time-critical CPUs you previously chose.
 For example:
 ````
-taskset -a 1 smx_perf_sub -c smx.cfg -a 5
+taskset -a 0x01 smx_perf_sub -c smx.cfg -a 5
 Core-7911-1: Onload extensions API has been dynamically loaded
 ...
 o_affinity_cpu=5, o_config=smx.cfg, o_fast=0, o_spin_cnt=0, o_topic='smx_perf',
 ````
 
-***Window 3***: run "taskset -a 1 smx_perf_pub -a 7 -c smx.cfg -l 2000 -f 0x3 -m 100 -r 250000 -n 2500000".
+***Window 3***: run "taskset -a 0x01 smx_perf_pub -a 7 -c smx.cfg -l 2000 -f 0x3 -m 100 -r 250000 -n 2500000".
 Substitute the "-a 1" and the "-a 7" with the non-time-critical and
 time-critical CPUs you previously chose.
 For example:
 ````
-$ taskset -a 1 /home/sford/GitHub/smx_perf/smx_perf_pub -a 7 -c smx.cfg -l 2000 -f 0x3 -m 100 -r 250000 -n 2500000
+$ taskset -a 0x01 /home/sford/GitHub/smx_perf/smx_perf_pub -a 7 -c smx.cfg -l 2000 -f 0x3 -m 100 -r 250000 -n 2500000
 Core-7911-1: Onload extensions API has been dynamically loaded
 ...
 o_affinity_cpu=7, o_config=smx.cfg, o_flags=0x03, o_jitter_loops=0, o_linger_ms=2000, o_msg_len=100, o_num_msgs=2500000, o_rate=250000, o_topic='smx_perf', o_warmup_loops=10000,
